@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0F1115;
+    --surface:#171A21;
+    --surface-2:#1F2330;
+    --surface-3:#262B3B;
+    --border:#2A2F3E;
+    --text:#EDEEF3;
+    --muted:#8B8FA3;
+    --accent:#7C5CFC;
+    --accent-dim:#5A3FD9;
+    --accent-soft:rgba(124,92,252,0.14);
+    --lime:#C4F542;
+    --lime-soft:rgba(196,245,66,0.14);
+    --danger:#FF6B6B;
+    --warn:#FFB84C;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(124,92,252,0.16), transparent 40%),
+      radial-gradient(circle at -10% 90%, rgba(196,245,66,0.06), transparent 35%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent); color:#fff; }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--surface-3); border-radius:8px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  button, input, textarea, select{ font-family:inherit; color:inherit; }
+  button{ cursor:pointer; }
+  a{ color:inherit; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .app{ display:flex; min-height:100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:232px; flex-shrink:0;
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex; flex-direction:column;
+    padding:22px 14px;
+    position:sticky; top:0; height:100vh;
+  }
+  .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700; font-size:22px; letter-spacing:-0.02em;
+    padding:6px 10px 22px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand .dot{
+    width:10px; height:10px; border-radius:50%;
+    background:linear-gradient(135deg, var(--accent), var(--lime));
+    box-shadow:0 0 14px rgba(124,92,252,0.7);
+  }
+  .nav{ display:flex; flex-direction:column; gap:2px; flex:1; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 12px; border-radius:10px;
+    background:none; border:none; text-align:left;
+    color:var(--muted); font-size:14.5px; font-weight:500;
+    position:relative; transition:background .15s, color .15s;
+    width:100%;
+  }
+  .nav-item svg{ width:18px; height:18px; flex-shrink:0; opacity:.85; }
+  .nav-item:hover{ background:var(--surface-2); color:var(--text); }
+  .nav-item.active{ background:var(--accent-soft); color:var(--text); }
+  .nav-item.active::before{
+    content:''; position:absolute; left:-14px; top:50%; transform:translateY(-50%);
+    width:3px; height:18px; border-radius:3px;
+    background:linear-gradient(180deg, var(--accent), var(--lime));
+  }
+  .nav-count{
+    margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:var(--muted); background:var(--surface-2); padding:2px 6px; border-radius:6px;
+  }
+  .nav-item.active .nav-count{ color:var(--accent); background:rgba(124,92,252,0.18); }
+
+  .sidebar-foot{
+    border-top:1px solid var(--border); padding-top:14px; margin-top:10px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .names-btn{
+    display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:10px;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--muted); font-size:13px;
+  }
+  .names-btn:hover{ color:var(--text); }
+  .avatars{ display:flex; }
+  .avatar{
+    width:20px; height:20px; border-radius:50%; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; color:#0F1115;
+    border:2px solid var(--surface-2); margin-left:-6px;
+  }
+  .avatar:first-child{ margin-left:0; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; min-width:0; padding:34px 40px 60px; max-width:1180px; }
+  .page-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:26px; flex-wrap:wrap; gap:12px; }
+  .page-title{ font-family:'Space Grotesk', sans-serif; font-size:28px; font-weight:700; letter-spacing:-0.01em; }
+  .page-sub{ color:var(--muted); font-size:14px; margin-top:4px; }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-bottom:6px; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px 22px;
+  }
+  .grid{ display:grid; gap:16px; }
+  .grid-2{ grid-template-columns:1fr 1fr; }
+  .grid-3{ grid-template-columns:repeat(3, 1fr); }
+  @media (max-width:900px){ .grid-2, .grid-3{ grid-template-columns:1fr; } .main{ padding:24px 18px 50px; } .sidebar{ width:76px; padding:18px 8px; } .nav-item span.label{ display:none; } .brand span{ display:none; } .nav-item{ justify-content:center; } .nav-count{ display:none; } .sidebar-foot{ display:none; } }
+
+  .section-label{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15.5px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+
+  /* quick add */
+  .quickadd{ display:flex; gap:10px; margin-bottom:26px; }
+  .quickadd input{
+    flex:1; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:13px 16px; font-size:14.5px; color:var(--text);
+  }
+  .quickadd input::placeholder{ color:var(--muted); }
+  .quickadd input:focus{ border-color:var(--accent); }
+  .btn{
+    background:var(--accent); color:#fff; border:none; border-radius:12px;
+    padding:13px 20px; font-weight:600; font-size:14px; white-space:nowrap;
+    transition:background .15s, transform .1s;
+  }
+  .btn:hover{ background:var(--accent-dim); }
+  .btn:active{ transform:scale(.97); }
+  .btn-ghost{
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border);
+    border-radius:10px; padding:9px 14px; font-size:13.5px; font-weight:500;
+  }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-sm{ padding:7px 12px; font-size:12.5px; border-radius:8px; }
+
+  .row-item{
+    display:flex; align-items:center; gap:12px; padding:12px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .row-item:last-child{ border-bottom:none; }
+  .checkbox{
+    width:19px; height:19px; border-radius:6px; border:1.5px solid var(--muted);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; background:transparent;
+  }
+  .checkbox.done{ background:var(--lime); border-color:var(--lime); color:#0F1115; }
+  .item-title{ font-size:14.5px; font-weight:500; }
+  .item-title.done{ text-decoration:line-through; color:var(--muted); }
+  .item-meta{ font-size:12px; color:var(--muted); font-family:'IBM Plex Mono', monospace; margin-top:2px; }
+  .pill{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px;
+    font-family:'Inter', sans-serif; letter-spacing:.02em;
+  }
+  .pill-you{ background:rgba(124,92,252,0.18); color:#B8A6FF; }
+  .pill-partner{ background:rgba(196,245,66,0.18); color:var(--lime); }
+  .pill-both{ background:var(--surface-3); color:var(--muted); }
+  .icon-btn{
+    background:none; border:none; color:var(--muted); padding:6px; border-radius:8px; display:flex;
+  }
+  .icon-btn:hover{ background:var(--surface-2); color:var(--danger); }
+  .icon-btn svg{ width:16px; height:16px; }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--muted); }
+  .empty svg{ width:34px; height:34px; opacity:.4; margin-bottom:10px; }
+  .empty p{ font-size:13.5px; }
+
+  /* forms */
+  .field-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .field-row input[type=text], .field-row input[type=date], .field-row input[type=number], .field-row select, .field-row textarea{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+    padding:10px 13px; font-size:13.5px; color:var(--text); flex:1; min-width:120px;
+  }
+  .field-row textarea{ resize:vertical; min-height:60px; width:100%; }
+  .field-row input:focus, .field-row select:focus, .field-row textarea:focus{ border-color:var(--accent); }
+
+  .progress-bar{ height:8px; background:var(--surface-3); border-radius:6px; overflow:hidden; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg, var(--accent), var(--lime)); border-radius:6px; transition:width .3s; }
+
+  .goal-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:12px; }
+  .goal-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .goal-pct{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--lime); }
+
+  .watch-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px; }
+  .watch-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:15px; display:flex; flex-direction:column; gap:8px; }
+  .watch-title{ font-weight:600; font-size:14.5px; }
+  .status-tabs{ display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+  .status-tab{ background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:7px 14px; font-size:12.5px; color:var(--muted); }
+  .status-tab.active{ background:var(--accent-soft); color:var(--text); border-color:var(--accent); }
+  .stars{ display:flex; gap:2px; }
+  .star{ cursor:pointer; opacity:.3; }
+  .star.filled{ opacity:1; }
+
+  .bigbuy-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .stage-track{ display:flex; gap:6px; margin:12px 0; }
+  .stage{ flex:1; text-align:center; font-size:11px; padding:7px 4px; border-radius:8px; background:var(--surface-3); color:var(--muted); font-weight:600; }
+  .stage.active{ background:var(--accent); color:#fff; }
+  .stage.past{ background:var(--lime-soft); color:var(--lime); }
+
+  .notes-layout{ display:grid; grid-template-columns:260px 1fr; gap:18px; }
+  @media (max-width:900px){ .notes-layout{ grid-template-columns:1fr; } }
+  .note-list-item{ padding:11px 12px; border-radius:10px; cursor:pointer; margin-bottom:4px; }
+  .note-list-item:hover{ background:var(--surface-2); }
+  .note-list-item.active{ background:var(--accent-soft); }
+  .note-list-title{ font-size:13.5px; font-weight:600; }
+  .note-list-snip{ font-size:12px; color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tag{ font-size:10.5px; background:var(--surface-3); color:var(--muted); padding:2px 8px; border-radius:20px; margin-right:4px; }
+
+  /* dashboard */
+  .stat-card{ display:flex; flex-direction:column; gap:4px; }
+  .stat-num{ font-family:'Space Grotesk', sans-serif; font-size:30px; font-weight:700; }
+  .stat-label{ font-size:12.5px; color:var(--muted); }
+  .today-strip{
+    display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; margin-bottom:24px;
+  }
+  .today-chip{
+    flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:12px 16px; min-width:150px;
+  }
+  .today-chip .d{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--accent); margin-bottom:4px; }
+
+  /* calendar */
+  .cal-layout{ display:grid; grid-template-columns:340px 1fr; gap:18px; align-items:start; }
+  @media (max-width:900px){ .cal-layout{ grid-template-columns:1fr; } }
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px; }
+  .cal-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; }
+  .cal-nav{ display:flex; gap:6px; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; }
+  .cal-dow{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); text-align:center; padding:4px 0 6px; text-transform:uppercase; }
+  .cal-cell{
+    aspect-ratio:1; border-radius:10px; border:1px solid transparent; background:var(--surface-2);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    color:var(--text); font-size:13px; font-weight:500; padding:0;
+  }
+  .cal-cell.empty{ background:none; }
+  button.cal-cell:hover{ border-color:var(--accent); }
+  .cal-cell.today{ border-color:var(--lime); }
+  .cal-cell.selected{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .cal-dots{ display:flex; gap:3px; align-items:center; height:7px; }
+  .cal-dots i{ width:5px; height:5px; border-radius:50%; display:block; }
+  .cal-dots em{ font-style:normal; font-size:9px; font-family:'IBM Plex Mono', monospace; color:var(--muted); }
+  .cal-cell.selected .cal-dots em{ color:#fff; }
+  .dot-open{ background:var(--warn); }
+  .dot-done{ background:var(--lime); }
+  .cal-legend{ display:flex; gap:16px; margin-top:14px; font-size:12px; color:var(--muted); }
+  .cal-legend span{ display:flex; align-items:center; gap:6px; }
+  .cal-legend i{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .date-chip{
+    flex:1; display:flex; align-items:center; gap:9px; background:var(--surface-2);
+    border:1px solid var(--border); border-radius:10px; padding:9px 13px; font-size:13.5px; color:var(--muted);
+  }
+  .date-chip svg{ width:16px; height:16px; flex-shrink:0; }
+  .date-chip.set{ color:var(--text); border-color:var(--accent); }
+  .date-chip span{ flex:1; }
+
+  /* clickable items */
+  .row-item.clickable{ cursor:pointer; padding:12px 8px; margin:0 -8px; border-radius:8px; }
+  .row-item.clickable:hover{ background:var(--surface-2); }
+  .clickable-card{ cursor:pointer; text-align:left; font:inherit; color:inherit; transition:border-color .15s; }
+  .clickable-card:hover{ border-color:var(--accent); }
+  .chip-wrap{ display:flex; flex-wrap:wrap; gap:8px; }
+  .buy-chip{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:20px;
+    padding:8px 14px; font-size:13.5px; font-weight:500;
+  }
+  .buy-chip:hover{ border-color:var(--lime); color:var(--lime); }
+  .watch-comment{
+    width:100%; min-height:54px; background:var(--surface-3); border:1px solid var(--border);
+    border-radius:8px; padding:8px 10px; font-size:12.5px; resize:vertical; line-height:1.45;
+  }
+  .watch-comment:focus{ border-color:var(--accent); }
+
+  /* AI advisor */
+  .chat-wrap{ display:flex; flex-direction:column; height:calc(100vh - 170px); }
+  .chat-log{ flex:1; overflow-y:auto; padding:6px 4px 20px; display:flex; flex-direction:column; gap:16px; }
+  .msg{ max-width:78%; padding:12px 16px; border-radius:14px; font-size:14px; line-height:1.5; }
+  .msg.user{ align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .msg.ai{ align-self:flex-start; background:var(--surface-2); border:1px solid var(--border); border-bottom-left-radius:4px; white-space:pre-wrap; }
+  .msg.ai.loading{ color:var(--muted); font-style:italic; }
+  .chat-input-bar{ display:flex; gap:10px; padding-top:14px; border-top:1px solid var(--border); }
+  .chat-input-bar input{ flex:1; background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:13px 16px; font-size:14.5px; }
+  .chat-input-bar input:focus{ border-color:var(--accent); }
+  .suggestion{ background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:7px 13px; font-size:12.5px; color:var(--muted); }
+  .suggestion:hover{ color:var(--text); border-color:var(--accent); }
+  .suggestions-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+
+  /* modal */
+  .modal-bg{ position:fixed; inset:0; background:rgba(5,6,10,0.6); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px; width:360px; max-width:90vw; }
+  .modal h3{ font-family:'Space Grotesk', sans-serif; margin-bottom:16px; }
+  .modal .field-row{ flex-direction:column; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--surface-3); border:1px solid var(--border); padding:11px 20px; border-radius:12px;
+    font-size:13.5px; z-index:60; opacity:0; transition:opacity .25s, transform .25s;
+    pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  .loader{ display:flex; gap:5px; }
+  .loader span{ width:6px; height:6px; border-radius:50%; background:var(--muted); animation:bounce 1.2s infinite ease-in-out; }
+  .loader span:nth-child(2){ animation-delay:.15s; }
+  .loader span:nth-child(3){ animation-delay:.3s; }
+  @keyframes bounce{ 0%,80%,100%{ transform:translateY(0); opacity:.4; } 40%{ transform:translateY(-4px); opacity:1; } }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  .gate{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .gate-card{ background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:36px; width:400px; max-width:100%; }
+  .gate-card h1{ font-family:'Space Grotesk',sans-serif; font-size:24px; margin-bottom:6px; }
+  .gate-card p{ color:var(--muted); font-size:13.5px; margin-bottom:20px; line-height:1.5; }
+  .gate-card input{ width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; font-size:14.5px; color:var(--text); margin-bottom:14px; }
+  .gate-card input:focus{ border-color:var(--accent); }
+  .gate-error{ color:var(--danger); font-size:13px; margin-bottom:10px; min-height:16px; }
+</style>
+</head>
+<body>
+
+<div id="root">
+  <div class="gate">
+    <div class="gate-card">
+      <h1>Welcome to Us</h1>
+      <p>Enter your shared household code. Use the same code on both your phones/computers — it's how you and your partner see the same data. Anyone who has it can access your data, so treat it like a shared password and don't post it publicly.</p>
+      <div class="gate-error" id="gateError"></div>
+      <input type="text" id="gateCode" placeholder="e.g. sunset-otter-42" onkeydown="if(event.key==='Enter')enterHousehold()">
+      <button class="btn" style="width:100%;" onclick="enterHousehold()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------------------------------------------------
+   CONFIG — fill these in with your own Supabase project
+   details (see README.md). The anon key is safe to expose
+   in frontend code — it only allows what your RLS policy
+   permits.
+--------------------------------------------------------- */
+const CONFIG = {
+  SUPABASE_URL: 'https://pzhibhvmrdefyulsghdn.supabase.co',        // e.g. https://xxxx.supabase.co
+  SUPABASE_ANON_KEY: 'sb_publishable_jfFJnnY0f0ANG6NtoKZ5ug_utqqY2Md',
+  ADVISOR_ENDPOINT: '/api/advisor'          // serverless function, no change needed
+};
+const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+let householdCode = localStorage.getItem('household_code') || '';
+
+/* ---------------------------------------------------------
+   ICONS (inline, simple line style — consistent stroke set)
+--------------------------------------------------------- */
+const ICONS = {
+  dashboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>`,
+  calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>`,
+  notes: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>`,
+  goals: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>`,
+  watch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7l4-4 3 3-4 4z"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M9 12l6 3.5V12z" fill="currentColor" stroke="none"/></svg>`,
+  shopping: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L4 3H2M9 10V4a3 3 0 0 1 6 0v6"/><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>`,
+  bigbuy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>`,
+  advisor: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l1.7 4.6L18 8l-4.3 1.4L12 14l-1.7-4.6L6 8l4.3-1.4z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></svg>`,
+  empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>`,
+  send: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01z"/></svg>`
+};
+
+const NAV_ITEMS = [
+  { id:'dashboard', label:'Dashboard', icon:ICONS.dashboard },
+  { id:'calendar', label:'Calendar & To-dos', icon:ICONS.calendar },
+  { id:'notes', label:'Notes', icon:ICONS.notes },
+  { id:'goals', label:'Goals', icon:ICONS.goals },
+  { id:'watchlist', label:'Watchlist', icon:ICONS.watch },
+  { id:'shopping', label:'Supermarket', icon:ICONS.shopping },
+  { id:'bigbuys', label:'Big Buys', icon:ICONS.bigbuy },
+  { id:'advisor', label:'AI Advisor', icon:ICONS.advisor },
+];
+
+/* ---------------------------------------------------------
+   STATE
+--------------------------------------------------------- */
+let state = {
+  tasks: [], notes: [], goals: [], watchlist: [], shopping: [], bigbuys: [],
+  names: { you:'Ale', partner:'Isa' },
+  loaded:false
+};
+let currentPage = 'dashboard';
+let activeNoteId = null;
+let chatHistory = []; // {role, content}
+
+/* ---------------------------------------------------------
+   HOUSEHOLD GATE
+--------------------------------------------------------- */
+function showApp(){
+  document.getElementById('root').innerHTML = `
+    <div class="app">
+      <div class="sidebar">
+        <div class="brand"><span class="dot"></span><span>Us</span></div>
+        <div class="nav" id="nav"></div>
+        <div class="sidebar-foot">
+          <button class="names-btn" onclick="openNamesModal()">
+            <span class="avatars" id="avatarPreview"></span>
+            <span id="namesPreview">Set names</span>
+          </button>
+        </div>
+      </div>
+      <div class="main" id="main"></div>
+    </div>
+  `;
+}
+async function enterHousehold(){
+  const code = document.getElementById('gateCode').value.trim();
+  const errEl = document.getElementById('gateError');
+  if(!code){ errEl.textContent = 'Enter a code to continue.'; return; }
+  if(CONFIG.SUPABASE_URL.includes('YOUR_SUPABASE_URL')){
+    errEl.textContent = "The app isn't connected to a database yet — see README.md for setup.";
+    return;
+  }
+  householdCode = code.toLowerCase().replace(/\s+/g,'-');
+  localStorage.setItem('household_code', householdCode);
+  await boot();
+}
+
+/* ---------------------------------------------------------
+   STORAGE HELPERS (Supabase-backed, scoped to household code)
+--------------------------------------------------------- */
+async function loadAll(){
+  const { data, error } = await sb.from('household_data').select('key,value').eq('household_code', householdCode);
+  if(error){ showToast('Could not load your data — check your Supabase setup'); console.error(error); return; }
+  const found = {};
+  (data||[]).forEach(row => { found[row.key] = row.value; });
+  ['tasks','notes','goals','watchlist','shopping','bigbuys','names'].forEach(k=>{
+    if(found[k] !== undefined) state[k] = found[k];
+  });
+  state.loaded = true;
+}
+async function save(key){
+  try{
+    const { error } = await sb.from('household_data').upsert({
+      household_code: householdCode,
+      key: key,
+      value: state[key],
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'household_code,key' });
+    if(error){ showToast('Could not save — check your connection'); console.error(error); }
+  }catch(e){ showToast('Could not save — try again'); console.error(e); }
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+/* ---------------------------------------------------------
+   RENDER: SHELL
+--------------------------------------------------------- */
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = NAV_ITEMS.map(item=>{
+    let count = '';
+    if(item.id==='calendar') count = state.tasks.filter(t=>!t.done).length;
+    if(item.id==='notes') count = state.notes.length;
+    if(item.id==='goals') count = state.goals.length;
+    if(item.id==='watchlist') count = state.watchlist.filter(w=>w.status!=='watched').length;
+    if(item.id==='shopping') count = state.shopping.filter(s=>!s.done).length;
+    if(item.id==='bigbuys') count = state.bigbuys.filter(b=>b.status!=='purchased').length;
+    return `<button class="nav-item ${currentPage===item.id?'active':''}" onclick="go('${item.id}')">
+      ${item.icon}<span class="label">${item.label}</span>
+      ${count!=='' && count>0 ? `<span class="nav-count">${count}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  const av = document.getElementById('avatarPreview');
+  const y = (state.names.you||'Y')[0].toUpperCase();
+  const p = (state.names.partner||'P')[0].toUpperCase();
+  av.innerHTML = `<span class="avatar" style="background:var(--accent)">${y}</span><span class="avatar" style="background:var(--lime)">${p}</span>`;
+  document.getElementById('namesPreview').textContent = `${state.names.you} & ${state.names.partner}`;
+}
+
+function go(page){
+  currentPage = page;
+  render();
+}
+
+function render(){
+  renderNav();
+  const main = document.getElementById('main');
+  const renderers = {
+    dashboard: renderDashboard,
+    calendar: renderCalendar,
+    notes: renderNotes,
+    goals: renderGoals,
+    watchlist: renderWatchlist,
+    shopping: renderShopping,
+    bigbuys: renderBigBuys,
+    advisor: renderAdvisor
+  };
+  main.innerHTML = renderers[currentPage]();
+  afterRenderHooks[currentPage] && afterRenderHooks[currentPage]();
+}
+const afterRenderHooks = {};
+
+/* ---------------------------------------------------------
+   DASHBOARD
+--------------------------------------------------------- */
+function renderDashboard(){
+  const openTasks = state.tasks.filter(t=>!t.done).sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+  const todayStr = ymd(new Date());
+  const overdue = openTasks.filter(t=>t.date && t.date < todayStr);
+  const upcoming = openTasks.slice(0,5);
+  const activeGoals = state.goals.slice(0,3);
+  const nextWatch = state.watchlist.filter(w=>w.status!=='watched').slice(0,3);
+  const toBuy = state.shopping.filter(s=>!s.done);
+  const shoppingLeft = toBuy.length;
+  const bigActive = state.bigbuys.filter(b=>b.status!=='purchased').length;
+
+  return `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">${greeting()}</div>
+        <div class="page-title">${state.names.you} & ${state.names.partner}</div>
+        <div class="page-sub">${overdue.length>0 ? `${overdue.length} thing${overdue.length>1?'s':''} overdue — take a look below.` : "Everything's on track. Here's what's next."}</div>
+      </div>
+    </div>
+
+    <div class="quickadd">
+      <input id="quickAddInput" type="text" placeholder="Quick add — e.g. 'Book flights tomorrow', or type task:/note:/goal:/watch:/buy:/bigbuy: to be specific" onkeydown="if(event.key==='Enter')quickAdd()">
+      <button class="btn" onclick="quickAdd()">Add</button>
+    </div>
+
+    <div class="grid grid-3" style="margin-bottom:22px;">
+      <button class="card stat-card clickable-card" onclick="go('calendar')"><div class="stat-num">${openTasks.length}</div><div class="stat-label">open tasks</div></button>
+      <button class="card stat-card clickable-card" onclick="go('shopping')"><div class="stat-num" style="color:${shoppingLeft>0?'var(--lime)':'var(--text)'}">${shoppingLeft}</div><div class="stat-label">items to buy</div></button>
+      <button class="card stat-card clickable-card" onclick="go('bigbuys')"><div class="stat-num">${bigActive}</div><div class="stat-label">big buys in progress</div></button>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="section-label">Up next <button class="btn-ghost btn-sm" onclick="go('calendar')">View all</button></div>
+        ${upcoming.length ? upcoming.map(t=>`
+          <div class="row-item">
+            <button class="checkbox ${t.done?'done':''}" onclick="toggleTask('${t.id}')"></button>
+            <div style="flex:1">
+              <div class="item-title ${t.done?'done':''}">${escapeHtml(t.title)}</div>
+              <div class="item-meta">${t.date ? fmtDate(t.date) : 'no date'}</div>
+            </div>
+            <span class="pill ${pillClass(t.owner)}">${ownerLabel(t.owner)}</span>
+          </div>`).join('') : emptyState('Nothing on the list yet — add something above.')}
+      </div>
+
+      <div class="card">
+        <div class="section-label">Goals in motion <button class="btn-ghost btn-sm" onclick="go('goals')">View all</button></div>
+        ${activeGoals.length ? activeGoals.map(g=>`
+          <div style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px;">
+              <span>${escapeHtml(g.title)} <span class="pill ${pillClass(g.owner)}" style="margin-left:6px;">${ownerLabel(g.owner)}</span></span><span class="goal-pct">${g.progress||0}%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${g.progress||0}%"></div></div>
+          </div>`).join('') : emptyState('No goals yet — set your first one.')}
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px;">
+      <div class="card">
+        <div class="section-label">Watch next <button class="btn-ghost btn-sm" onclick="go('watchlist')">View all</button></div>
+        ${nextWatch.length ? nextWatch.map(w=>`
+          <div class="row-item"><div style="flex:1"><div class="item-title">${escapeHtml(w.title)}</div><div class="item-meta">${w.type}</div></div>
+          <span class="pill ${w.status==='watching'?'pill-you':'pill-both'}">${w.status}</span></div>`).join('') : emptyState('Add a movie or series to watch together.')}
+      </div>
+      <div class="card">
+        <div class="section-label">Big buys <button class="btn-ghost btn-sm" onclick="go('bigbuys')">View all</button></div>
+        ${state.bigbuys.length ? state.bigbuys.slice(0,3).map(b=>`
+          <div class="row-item"><div style="flex:1"><div class="item-title">${escapeHtml(b.title)}</div><div class="item-meta">${b.category||''}${b.budget?' · $'+Number(b.budget).toLocaleString():''}</div></div>
+          <span class="pill pill-both">${b.status}</span></div>`).join('') : emptyState('Track a house, car, or other major purchase.')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-label">Supermarket <button class="btn-ghost btn-sm" onclick="go('shopping')">View all</button></div>
+      ${toBuy.length ? `
+        <div class="chip-wrap">
+          ${toBuy.slice(0,16).map(s=>`<button class="buy-chip" onclick="toggleShopping('${s.id}')">${escapeHtml(s.item)}${s.qty>1?' ×'+s.qty:''}</button>`).join('')}
+          ${toBuy.length>16 ? `<span class="item-meta" style="align-self:center;">+${toBuy.length-16} more</span>` : ''}
+        </div>
+        <div class="item-meta" style="margin-top:12px;">Tap an item to tick it off</div>
+      ` : emptyState('Nothing to buy right now.')}
+    </div>
+  `;
+}
+function greeting(){
+  const h = new Date().getHours();
+  if(h<12) return 'Good morning';
+  if(h<18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+async function quickAdd(){
+  const input = document.getElementById('quickAddInput');
+  const raw = input.value.trim();
+  if(!raw) return;
+  const lower = raw.toLowerCase();
+  const prefixes = { 'task:':'tasks','note:':'notes','goal:':'goals','watch:':'watchlist','buy:':'shopping','bigbuy:':'bigbuys' };
+  let handled = false;
+  for(const p in prefixes){
+    if(lower.startsWith(p)){
+      const content = raw.slice(p.length).trim();
+      await addQuick(prefixes[p], content);
+      handled = true;
+      break;
+    }
+  }
+  if(!handled) await addQuick('tasks', raw);
+  input.value = '';
+  render();
+}
+async function addQuick(type, content){
+  if(!content) return;
+  if(type==='tasks'){ state.tasks.push({id:uid(), title:content, date:'', done:false, owner:'both'}); await save('tasks'); }
+  if(type==='notes'){ state.notes.push({id:uid(), title:content, body:'', tags:[], updated:Date.now()}); await save('notes'); }
+  if(type==='goals'){ state.goals.push({id:uid(), title:content, progress:0, owner:'both', notes:''}); await save('goals'); }
+  if(type==='watchlist'){ state.watchlist.push({id:uid(), title:content, type:'movie', status:'want', rating:0}); await save('watchlist'); }
+  if(type==='shopping'){ state.shopping.push({id:uid(), item:content, qty:1, done:false}); await save('shopping'); }
+  if(type==='bigbuys'){ state.bigbuys.push({id:uid(), title:content, category:'', budget:'', status:'researching', notes:''}); await save('bigbuys'); }
+  showToast('Added');
+}
+
+function emptyState(msg){
+  return `<div class="empty">${ICONS.empty}<p>${msg}</p></div>`;
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+}
+function pillClass(owner){ return owner==='you'?'pill-you':owner==='partner'?'pill-partner':'pill-both'; }
+function ownerLabel(owner){ return owner==='you'?state.names.you:owner==='partner'?state.names.partner:'Both'; }
+
+/* ---------------------------------------------------------
+   CALENDAR & TASKS
+--------------------------------------------------------- */
+let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let selectedDate = '';
+let draftTask = { title:'', owner:'both' };
+
+function ymd(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function shiftMonth(delta){
+  calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+delta, 1);
+  render();
+}
+function jumpToday(){
+  const now = new Date();
+  calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  selectedDate = ymd(now);
+  render();
+}
+function pickDay(ds){
+  selectedDate = (selectedDate===ds) ? '' : ds;
+  render();
+}
+function calendarCells(){
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const startOffset = (new Date(y, m, 1).getDay() + 6) % 7; // week starts Monday
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const todayStr = ymd(new Date());
+  const counts = {};
+  state.tasks.forEach(t=>{
+    if(!t.date) return;
+    counts[t.date] = counts[t.date] || {open:0, done:0};
+    if(t.done) counts[t.date].done++; else counts[t.date].open++;
+  });
+  let cells = '';
+  for(let i=0;i<startOffset;i++) cells += '<div class="cal-cell empty"></div>';
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const c = counts[ds];
+    const total = c ? c.open + c.done : 0;
+    cells += `<button class="cal-cell ${ds===todayStr?'today':''} ${ds===selectedDate?'selected':''}" onclick="pickDay('${ds}')" aria-label="${ds}">
+      <span>${d}</span>
+      <span class="cal-dots">${c && c.open ? '<i class="dot-open"></i>' : ''}${c && c.done ? '<i class="dot-done"></i>' : ''}${total>1 ? `<em>${total}</em>` : ''}</span>
+    </button>`;
+  }
+  return cells;
+}
+function renderCalendar(){
+  const sorted = [...state.tasks].sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return (a.date||'9999').localeCompare(b.date||'9999');
+  });
+  const list = selectedDate ? sorted.filter(t=>t.date===selectedDate) : sorted;
+  const monthLabel = calMonth.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+  const dows = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  return `
+    <div class="page-head"><div><div class="eyebrow">Shared</div><div class="page-title">Calendar & to-dos</div><div class="page-sub">Pick a day on the calendar, then add what needs doing.</div></div></div>
+    <div class="cal-layout">
+      <div class="card">
+        <div class="cal-head">
+          <div class="cal-title">${monthLabel}</div>
+          <div class="cal-nav">
+            <button class="btn-ghost btn-sm" onclick="shiftMonth(-1)" aria-label="Previous month">‹</button>
+            <button class="btn-ghost btn-sm" onclick="jumpToday()">Today</button>
+            <button class="btn-ghost btn-sm" onclick="shiftMonth(1)" aria-label="Next month">›</button>
+          </div>
+        </div>
+        <div class="cal-grid">
+          ${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+          ${calendarCells()}
+        </div>
+        <div class="cal-legend"><span><i class="dot-open"></i>open</span><span><i class="dot-done"></i>done</span></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="field-row">
+            <input type="text" id="taskTitle" placeholder="What needs doing?" value="${escapeHtml(draftTask.title)}" oninput="draftTask.title=this.value" onkeydown="if(event.key==='Enter')addTask()">
+          </div>
+          <div class="field-row">
+            <div class="date-chip ${selectedDate?'set':''}">
+              ${ICONS.calendar}
+              <span>${selectedDate ? fmtDate(selectedDate) : 'No date — tap a day on the calendar'}</span>
+              ${selectedDate ? `<button class="icon-btn" onclick="pickDay('${selectedDate}')" aria-label="Clear date">✕</button>` : ''}
+            </div>
+            <select id="taskOwner" onchange="draftTask.owner=this.value" style="flex:0 0 auto; min-width:130px;">
+              <option value="both" ${draftTask.owner==='both'?'selected':''}>Both</option>
+              <option value="you" ${draftTask.owner==='you'?'selected':''}>${escapeHtml(state.names.you)}</option>
+              <option value="partner" ${draftTask.owner==='partner'?'selected':''}>${escapeHtml(state.names.partner)}</option>
+            </select>
+            <button class="btn" onclick="addTask()">Add task</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-label">
+            <span>${selectedDate ? 'Tasks on '+fmtDate(selectedDate) : 'All tasks'}</span>
+            ${selectedDate ? `<button class="btn-ghost btn-sm" onclick="pickDay('${selectedDate}')">Show all</button>` : ''}
+          </div>
+          ${list.length ? list.map(t=>`
+            <div class="row-item">
+              <button class="checkbox ${t.done?'done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</button>
+              <div style="flex:1">
+                <div class="item-title ${t.done?'done':''}">${escapeHtml(t.title)}</div>
+                <div class="item-meta">${t.date?fmtDate(t.date):'no date'}</div>
+              </div>
+              <span class="pill ${pillClass(t.owner)}">${ownerLabel(t.owner)}</span>
+              <button class="icon-btn" onclick="deleteItem('tasks','${t.id}')">${ICONS.trash}</button>
+            </div>`).join('') : emptyState(selectedDate ? 'Nothing planned for this day.' : 'No tasks yet. Add your first one above.')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+async function addTask(){
+  const title = draftTask.title.trim();
+  if(!title) return;
+  state.tasks.push({id:uid(), title, date:selectedDate, done:false, owner:draftTask.owner});
+  draftTask.title = '';
+  await save('tasks');
+  render();
+}
+async function toggleTask(id){
+  const t = state.tasks.find(x=>x.id===id);
+  t.done = !t.done;
+  await save('tasks');
+  render();
+}
+async function deleteItem(collection, id){
+  state[collection] = state[collection].filter(x=>x.id!==id);
+  await save(collection);
+  render();
+}
+
+/* ---------------------------------------------------------
+   NOTES
+--------------------------------------------------------- */
+function renderNotes(){
+  if(!activeNoteId && state.notes.length) activeNoteId = state.notes[0].id;
+  const active = state.notes.find(n=>n.id===activeNoteId);
+  return `
+    <div class="page-head"><div><div class="eyebrow">Shared</div><div class="page-title">Notes</div><div class="page-sub">Anything worth writing down.</div></div>
+      <button class="btn" onclick="newNote()">+ New note</button>
+    </div>
+    <div class="notes-layout">
+      <div class="card" style="padding:12px;">
+        ${state.notes.length ? state.notes.slice().sort((a,b)=>b.updated-a.updated).map(n=>`
+          <div class="note-list-item ${n.id===activeNoteId?'active':''}" onclick="selectNote('${n.id}')">
+            <div class="note-list-title">${escapeHtml(n.title||'Untitled')}</div>
+            <div class="note-list-snip">${escapeHtml((n.body||'').slice(0,60))}</div>
+          </div>`).join('') : emptyState('No notes yet.')}
+      </div>
+      <div class="card">
+        ${active ? `
+          <input type="text" id="noteTitle" value="${escapeHtml(active.title)}" placeholder="Title" style="width:100%; background:none; border:none; font-family:'Space Grotesk',sans-serif; font-size:19px; font-weight:600; margin-bottom:12px;" onchange="updateNote()">
+          <textarea id="noteBody" placeholder="Write anything..." style="width:100%; min-height:280px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:14px; line-height:1.6;" onchange="updateNote()">${escapeHtml(active.body)}</textarea>
+          <input type="text" id="noteTags" value="${(active.tags||[]).join(', ')}" placeholder="tags, comma, separated" style="width:100%; margin-top:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:9px 12px; font-size:12.5px;" onchange="updateNote()">
+          <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+            <button class="btn-ghost btn-sm" onclick="deleteItem('notes','${active.id}'); activeNoteId=null;" style="color:var(--danger)">Delete note</button>
+          </div>
+        ` : emptyState('Select or create a note.')}
+      </div>
+    </div>
+  `;
+}
+async function newNote(){
+  const n = {id:uid(), title:'Untitled', body:'', tags:[], updated:Date.now()};
+  state.notes.push(n);
+  activeNoteId = n.id;
+  await save('notes');
+  render();
+}
+function selectNote(id){ activeNoteId = id; render(); }
+async function updateNote(){
+  const n = state.notes.find(x=>x.id===activeNoteId);
+  if(!n) return;
+  n.title = document.getElementById('noteTitle').value;
+  n.body = document.getElementById('noteBody').value;
+  n.tags = document.getElementById('noteTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  n.updated = Date.now();
+  await save('notes');
+  render();
+}
+
+/* ---------------------------------------------------------
+   GOALS
+--------------------------------------------------------- */
+function goalSection(owner, title, emptyMsg){
+  const items = state.goals.filter(g=>g.owner===owner);
+  const avg = items.length ? Math.round(items.reduce((a,g)=>a+(g.progress||0),0)/items.length) : 0;
+  return `
+    <div class="card goal-section">
+      <div class="section-label">
+        <span>${title}</span>
+        <span class="goal-pct">${items.length ? items.length+' · '+avg+'% avg' : ''}</span>
+      </div>
+      <div class="field-row" style="margin-bottom:14px;">
+        <input type="text" id="goalTitle-${owner}" placeholder="Add a goal..." onkeydown="if(event.key==='Enter')addGoal('${owner}')">
+        <button class="btn btn-sm" onclick="addGoal('${owner}')">Add</button>
+      </div>
+      ${items.length ? items.map(g=>`
+        <div class="goal-card">
+          <div class="goal-top">
+            <div style="font-weight:600; font-size:15px;">${escapeHtml(g.title)}</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="goal-pct">${g.progress||0}%</span>
+              <button class="icon-btn" aria-label="Delete goal" onclick="deleteItem('goals','${g.id}')">${ICONS.trash}</button>
+            </div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${g.progress||0}%"></div></div>
+          <input type="range" min="0" max="100" value="${g.progress||0}" style="width:100%; margin-top:10px; accent-color:var(--accent);" onchange="updateGoalProgress('${g.id}', this.value)">
+        </div>
+      `).join('') : emptyState(emptyMsg)}
+    </div>
+  `;
+}
+function renderGoals(){
+  return `
+    <div class="page-head"><div><div class="eyebrow">Shared</div><div class="page-title">Goals</div><div class="page-sub">What you're building together, and what each of you is working toward.</div></div></div>
+    ${goalSection('both', "Couple's goals", 'No shared goals yet — what do you want to achieve together?')}
+    <div class="grid grid-2" style="margin-top:16px;">
+      ${goalSection('you', escapeHtml(state.names.you)+"'s goals", 'No goals yet.')}
+      ${goalSection('partner', escapeHtml(state.names.partner)+"'s goals", 'No goals yet.')}
+    </div>
+  `;
+}
+async function addGoal(owner){
+  const input = document.getElementById('goalTitle-'+owner);
+  const title = input.value.trim();
+  if(!title) return;
+  state.goals.push({id:uid(), title, progress:0, owner, notes:''});
+  await save('goals');
+  render();
+}
+async function updateGoalProgress(id, val){
+  const g = state.goals.find(x=>x.id===id);
+  g.progress = Number(val);
+  await save('goals');
+  render();
+}
+
+/* ---------------------------------------------------------
+   WATCHLIST
+--------------------------------------------------------- */
+let watchFilter = 'all';
+function renderWatchlist(){
+  const filtered = watchFilter==='all' ? state.watchlist : state.watchlist.filter(w=>w.status===watchFilter);
+  return `
+    <div class="page-head"><div><div class="eyebrow">Shared</div><div class="page-title">Watchlist</div><div class="page-sub">Movies, series, and documentaries for date night.</div></div></div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="field-row">
+        <input type="text" id="watchTitle" placeholder="Title..." style="flex:2">
+        <select id="watchType">
+          <option value="movie">Movie</option>
+          <option value="series">Series</option>
+          <option value="documentary">Documentary</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <textarea id="watchComment" placeholder="Comments — who recommended it, why you want to watch it..."></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end;"><button class="btn" onclick="addWatch()">Add</button></div>
+    </div>
+    <div class="status-tabs">
+      ${['all','want','watching','watched'].map(s=>`<button class="status-tab ${watchFilter===s?'active':''}" onclick="watchFilter='${s}'; render();">${s==='all'?'All':s==='want'?'Want to watch':s==='watching'?'Watching':'Watched'}</button>`).join('')}
+    </div>
+    <div class="watch-grid">
+      ${filtered.length ? filtered.map(w=>`
+        <div class="watch-card">
+          <div style="display:flex; justify-content:space-between;">
+            <div class="watch-title">${escapeHtml(w.title)}</div>
+            <button class="icon-btn" onclick="deleteItem('watchlist','${w.id}')">${ICONS.trash}</button>
+          </div>
+          <div class="item-meta">${w.type}</div>
+          <select onchange="updateWatchStatus('${w.id}', this.value)" style="background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:6px 8px; font-size:12.5px;">
+            <option value="want" ${w.status==='want'?'selected':''}>Want to watch</option>
+            <option value="watching" ${w.status==='watching'?'selected':''}>Watching</option>
+            <option value="watched" ${w.status==='watched'?'selected':''}>Watched</option>
+          </select>
+          ${w.status==='watched' ? `<div class="stars">${[1,2,3,4,5].map(i=>`<span class="star ${i<=(w.rating||0)?'filled':''}" style="width:16px;height:16px;color:var(--lime)" onclick="rateWatch('${w.id}',${i})">${ICONS.star}</span>`).join('')}</div>` : ''}
+          <textarea class="watch-comment" placeholder="Add a comment..." onchange="updateWatchComment('${w.id}', this.value)">${escapeHtml(w.comment||'')}</textarea>
+        </div>
+      `).join('') : `<div class="card" style="grid-column:1/-1;">${emptyState('Nothing here yet — add something to watch.')}</div>`}
+    </div>
+  `;
+}
+async function addWatch(){
+  const title = document.getElementById('watchTitle').value.trim();
+  if(!title) return;
+  const type = document.getElementById('watchType').value;
+  const comment = document.getElementById('watchComment').value.trim();
+  state.watchlist.push({id:uid(), title, type, status:'want', rating:0, comment});
+  await save('watchlist');
+  render();
+}
+async function updateWatchComment(id, comment){
+  const w = state.watchlist.find(x=>x.id===id);
+  if(!w) return;
+  w.comment = comment;
+  await save('watchlist');
+}
+async function updateWatchStatus(id, status){
+  const w = state.watchlist.find(x=>x.id===id);
+  w.status = status;
+  await save('watchlist');
+  render();
+}
+async function rateWatch(id, rating){
+  const w = state.watchlist.find(x=>x.id===id);
+  w.rating = rating;
+  await save('watchlist');
+  render();
+}
+
+/* ---------------------------------------------------------
+   SHOPPING
+--------------------------------------------------------- */
+function renderShopping(){
+  const left = state.shopping.filter(s=>!s.done);
+  const done = state.shopping.filter(s=>s.done);
+  return `
+    <div class="page-head"><div><div class="eyebrow">Shared</div><div class="page-title">Supermarket list</div><div class="page-sub">${left.length} item${left.length!==1?'s':''} to grab — tap an item to tick it off.</div></div>
+      ${done.length ? `<button class="btn-ghost" onclick="clearChecked()">Clear checked</button>`:''}
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="field-row">
+        <input type="text" id="shopItem" placeholder="Add an item..." style="flex:2" onkeydown="if(event.key==='Enter')addShopping()">
+        <input type="number" id="shopQty" placeholder="Qty" value="1" min="1" style="max-width:80px;">
+        <button class="btn" onclick="addShopping()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      ${state.shopping.length ? [...left, ...done].map(s=>`
+        <div class="row-item clickable" role="button" tabindex="0" onclick="toggleShopping('${s.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleShopping('${s.id}')}">
+          <span class="checkbox ${s.done?'done':''}">${s.done?'✓':''}</span>
+          <div style="flex:1">
+            <div class="item-title ${s.done?'done':''}">${escapeHtml(s.item)}</div>
+          </div>
+          ${s.qty && s.qty>1 ? `<span class="pill pill-both">×${s.qty}</span>` : ''}
+          <button class="icon-btn" aria-label="Delete item" onclick="event.stopPropagation(); deleteItem('shopping','${s.id}')">${ICONS.trash}</button>
+        </div>
+      `).join('') : emptyState('List is empty — add what you need to buy.')}
+    </div>
+  `;
+}
+async function addShopping(){
+  const item = document.getElementById('shopItem').value.trim();
+  if(!item) return;
+  const qty = Number(document.getElementById('shopQty').value) || 1;
+  state.shopping.push({id:uid(), item, qty, done:false});
+  await save('shopping');
+  render();
+}
+async function toggleShopping(id){
+  const s = state.shopping.find(x=>x.id===id);
+  s.done = !s.done;
+  await save('shopping');
+  render();
+}
+async function clearChecked(){
+  state.shopping = state.shopping.filter(s=>!s.done);
+  await save('shopping');
+  render();
+}
+
+/* ---------------------------------------------------------
+   BIG BUYS
+--------------------------------------------------------- */
+const STAGES = ['researching','deciding','decided','purchased'];
+function renderBigBuys(){
+  return `
+    <div class="page-head"><div><div class="eyebrow">Shared</div><div class="page-title">Big buys</div><div class="page-sub">House, car, and other major purchases.</div></div></div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="field-row">
+        <input type="text" id="bbTitle" placeholder="What are you considering?" style="flex:2">
+        <input type="text" id="bbCategory" placeholder="Category (house, car...)" style="max-width:180px;">
+        <input type="number" id="bbBudget" placeholder="Budget $" style="max-width:130px;">
+        <button class="btn" onclick="addBigBuy()">Add</button>
+      </div>
+    </div>
+    ${state.bigbuys.length ? state.bigbuys.map(b=>`
+      <div class="bigbuy-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="font-weight:700; font-size:16px; font-family:'Space Grotesk',sans-serif;">${escapeHtml(b.title)}</div>
+            <div class="item-meta">${escapeHtml(b.category||'uncategorized')} ${b.budget ? ' · budget $'+Number(b.budget).toLocaleString() : ''}</div>
+          </div>
+          <button class="icon-btn" onclick="deleteItem('bigbuys','${b.id}')">${ICONS.trash}</button>
+        </div>
+        <div class="stage-track">
+          ${STAGES.map((s,i)=>`<div class="stage ${b.status===s?'active':STAGES.indexOf(b.status)>i?'past':''}" onclick="updateBigBuyStatus('${b.id}','${s}')" style="cursor:pointer;">${s}</div>`).join('')}
+        </div>
+        <textarea placeholder="Notes, links, research..." onchange="updateBigBuyNotes('${b.id}', this.value)" style="width:100%; min-height:56px; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:13px;">${escapeHtml(b.notes||'')}</textarea>
+      </div>
+    `).join('') : `<div class="card">${emptyState('No big purchases being tracked yet.')}</div>`}
+  `;
+}
+async function addBigBuy(){
+  const title = document.getElementById('bbTitle').value.trim();
+  if(!title) return;
+  const category = document.getElementById('bbCategory').value.trim();
+  const budget = document.getElementById('bbBudget').value;
+  state.bigbuys.push({id:uid(), title, category, budget, status:'researching', notes:''});
+  await save('bigbuys');
+  render();
+}
+async function updateBigBuyStatus(id, status){
+  const b = state.bigbuys.find(x=>x.id===id);
+  b.status = status;
+  await save('bigbuys');
+  render();
+}
+async function updateBigBuyNotes(id, notes){
+  const b = state.bigbuys.find(x=>x.id===id);
+  b.notes = notes;
+  await save('bigbuys');
+}
+
+/* ---------------------------------------------------------
+   AI ADVISOR
+--------------------------------------------------------- */
+function buildContext(){
+  const today = ymd(new Date());
+  return {
+    today,
+    names: state.names,
+    tasks: state.tasks.map(t=>({title:t.title, date:t.date, done:t.done, owner:ownerLabel(t.owner)})),
+    notes: state.notes.map(n=>({title:n.title, body:n.body, tags:n.tags})),
+    goals: state.goals.map(g=>({title:g.title, progress:g.progress, owner:ownerLabel(g.owner)})),
+    watchlist: state.watchlist.map(w=>({title:w.title, type:w.type, status:w.status, rating:w.rating, comment:w.comment||''})),
+    shopping: state.shopping.map(s=>({item:s.item, qty:s.qty, done:s.done})),
+    bigbuys: state.bigbuys.map(b=>({title:b.title, category:b.category, budget:b.budget, status:b.status, notes:b.notes})),
+  };
+}
+const SUGGESTIONS = [
+  "What do we still need to do this week?",
+  "Summarize our goals progress",
+  "What's overdue?",
+  "What should we watch tonight?",
+  "How's our big buy research going?"
+];
+function renderAdvisor(){
+  return `
+    <div class="page-head"><div><div class="eyebrow">Grounded in your data</div><div class="page-title">AI Advisor</div><div class="page-sub">Ask about your tasks, notes, goals, watchlist, shopping, or big buys.</div></div></div>
+    <div class="suggestions-row">
+      ${SUGGESTIONS.map(s=>`<button class="suggestion" onclick="askAdvisor(${JSON.stringify(s).replace(/"/g,'&quot;')})">${s}</button>`).join('')}
+    </div>
+    <div class="card chat-wrap">
+      <div class="chat-log" id="chatLog">
+        ${chatHistory.length ? chatHistory.map(m=>`<div class="msg ${m.role==='user'?'user':'ai'}">${m.role==='user'?escapeHtml(m.content):m.content}</div>`).join('')
+        : `<div class="msg ai">Hi! I can see your shared tasks, notes, goals, watchlist, shopping list, and big buys. Ask me anything about them.</div>`}
+      </div>
+      <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="Ask something..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  `;
+}
+afterRenderHooks.advisor = function(){
+  const log = document.getElementById('chatLog');
+  if(log) log.scrollTop = log.scrollHeight;
+};
+function askAdvisor(text){
+  document.getElementById('chatInput').value = text;
+  sendChat();
+}
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  chatHistory.push({role:'user', content:text});
+  render();
+
+  const context = buildContext();
+  const systemPrompt = `You are a warm, concise household advisor embedded inside a shared life app for a couple named ${state.names.you} and ${state.names.partner}. Today's date is ${context.today}.
+Answer ONLY using the JSON data provided below — this is the couple's real tasks, notes, goals, watchlist, shopping list, and big purchases being considered. Do not invent items that aren't in the data. If something isn't in the data, say so plainly.
+Keep answers short, practical, and friendly — a few sentences or a short list, not an essay. Refer to people by name where relevant.
+
+DATA:
+${JSON.stringify(context, null, 2)}`;
+
+  // show loading bubble
+  chatHistory.push({role:'assistant', content:'<span class="loader"><span></span><span></span><span></span></span>', loading:true});
+  render();
+
+  try{
+    const response = await fetch(CONFIG.ADVISOR_ENDPOINT, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        system: systemPrompt,
+        messages: chatHistory.filter(m=>!m.loading).map(m=>({role:m.role, content:m.content}))
+      })
+    });
+    const data = await response.json();
+    if(!response.ok){ throw new Error(data.error || 'Request failed'); }
+    const text = (data.content||[]).map(c=>c.text||'').join('\n').trim() || "Sorry, I couldn't get a response.";
+    chatHistory = chatHistory.filter(m=>!m.loading);
+    chatHistory.push({role:'assistant', content: escapeHtml(text)});
+  }catch(e){
+    chatHistory = chatHistory.filter(m=>!m.loading);
+    chatHistory.push({role:'assistant', content:"Something went wrong reaching the advisor. Try again in a moment."});
+    console.error(e);
+  }
+  render();
+}
+
+/* ---------------------------------------------------------
+   NAMES MODAL
+--------------------------------------------------------- */
+function openNamesModal(){
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="modal-bg" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>Your names</h3>
+        <div class="field-row">
+          <input type="text" id="nameYou" value="${escapeHtml(state.names.you)}" placeholder="Your name">
+        </div>
+        <div class="field-row">
+          <input type="text" id="namePartner" value="${escapeHtml(state.names.partner)}" placeholder="Partner's name">
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn" onclick="saveNames()">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML = ''; }
+async function saveNames(){
+  state.names.you = document.getElementById('nameYou').value.trim() || 'You';
+  state.names.partner = document.getElementById('namePartner').value.trim() || 'Partner';
+  await save('names');
+  closeModal();
+  render();
+}
+
+/* ---------------------------------------------------------
+   BOOT
+--------------------------------------------------------- */
+async function boot(){
+  showApp();
+  document.getElementById('main').innerHTML = `<div class="card" style="margin-top:60px;">${emptyState('Loading your shared space...')}</div>`;
+  await loadAll();
+  render();
+}
+(function init(){
+  if(householdCode){
+    boot();
+  }
+  // else: gate screen (already in the page) stays visible until enterHousehold() runs
+})();
+</script>
+</body>
+</html>
